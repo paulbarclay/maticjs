@@ -231,16 +231,25 @@ export default class ProofsUtil {
   static async getReceiptProof(receipt, block, web3, requestConcurrency = Infinity, receipts?) {
     const stateSyncTxHash = ethUtils.bufferToHex(ProofsUtil.getStateSyncTxHash(block))
     const receiptsTrie = new Trie()
-    const receiptPromises = []
+    // const receiptPromises = []
     if (!receipts) {
-      block.transactions.forEach(tx => {
+      /*block.transactions.forEach(tx => {
         if (tx.hash === stateSyncTxHash) {
           // ignore if tx hash is bor state-sync tx
           return
         }
         receiptPromises.push(web3.eth.getTransactionReceipt(tx.hash))
-      })
-      receipts = await mapPromise(
+      })*/
+      receipts = []
+      for (let i = 0; i < block.transactions.length; i++) {
+        const tx = block.transactions[i]
+        if (tx.hash !== stateSyncTxHash) {
+          // ignore if tx hash is bor state-sync tx
+          const receipt = await web3.eth.getTransactionReceipt(tx.hash)
+          receipts.push(receipt)
+        }
+      }
+      /*receipts = await mapPromise(
         receiptPromises,
         val => {
           return val
@@ -248,7 +257,7 @@ export default class ProofsUtil {
         {
           concurrency: requestConcurrency,
         }
-      )
+      )*/
     }
 
     for (let i = 0; i < receipts.length; i++) {
